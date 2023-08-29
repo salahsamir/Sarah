@@ -1,6 +1,7 @@
 import { UserModel } from "../../../../DB/Models/UserModel.js";
 import { AsyncHandeller } from "../../../utlits/Error.js";
 import {  compare, hash } from './../../../utlits/bycript.js';
+import cloudinary from './../../../utlits/cloud.js';
 
 export const profile=AsyncHandeller(
    async(req,res,next) =>{
@@ -22,7 +23,20 @@ export const getuser=AsyncHandeller(
       return user?res.status(200).json(user):next (new Error('Profile not found',{cause:403}));
     }
 )
-  
+export const upload=AsyncHandeller(
+   async(req,res,next)=>{
+       const{_id}=req.user
+       if(!req.file){
+           return next(new Error('please upload image'))
+       }
+      const {secure_url,public_id}=await cloudinary.uploader.upload(req.file.path,{folder:`/users`})
+     const user=await UserModel.findByIdAndUpdate(_id,{image:{secure_url,public_id}})
+     if(user.image){
+       await cloudinary.uploader.destroy(user.image.public_id)
+     }
+ return res.json(user)
+   }
+)
 export const UpdatePassword = AsyncHandeller(
    async(req, res,next) =>{
       const {_id}=req.user

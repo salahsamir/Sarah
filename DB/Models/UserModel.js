@@ -17,6 +17,7 @@ const userSchema = new Schema(
       type: String,
       required: true
     },
+    image:Object,
     confiremEmail:{
       type:Boolean,
       default:false

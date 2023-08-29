@@ -4,6 +4,9 @@ import { generalFields } from './../../middleware/Validation.js';
 export const getUser=joi.object({
     _id:generalFields.id
 })
+export const UploadImage=joi.object({
+    file:generalFields.file
+})
 
 export const updatePassword=joi.object({
     oldpassword:generalFields.password,

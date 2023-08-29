@@ -17,6 +17,10 @@ const userSchema = new Schema(
       type: String,
       required: true
     },
+    confiremEmail:{
+      type:Boolean,
+      default:false
+    },
     age: { type: Number },
   
     gender: {

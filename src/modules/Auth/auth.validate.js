@@ -21,3 +21,7 @@ export const login=joi.object({
 
 
 })
+
+export const confirem=joi.object({
+    token:joi.string().required()
+})

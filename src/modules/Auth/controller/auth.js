@@ -1,7 +1,8 @@
 import { UserModel } from '../../../../DB/Models/UserModel.js'
-import { Sign } from '../../../utlits/Token.js'
+import { Sign, Verify } from '../../../utlits/Token.js'
 import { hash,  compare } from './../../../utlits/bycript.js'
 import { AsyncHandeller } from './../../../utlits/Error.js';
+import sendEmail from './../../../utlits/SendEmail.js';
 
 export const SignUp = AsyncHandeller(
   async (req, res, next) => {
@@ -11,6 +12,16 @@ export const SignUp = AsyncHandeller(
       return next (new Error('Invalid password',{cause:404}));
     const user = await UserModel.findOne({ email })
     if (user) return next (new Error("email exist ",{cause:404}))
+    const token=Sign({payload:{email}})
+    const confirem_link=`${req.protocol}://${req.headers.host}/auth/confiremEmail/${token}`
+    // const refresh_link=`${req.protocol}://${req.headers.host}/auth/refresh/${ref_token}`
+    const send_email=await sendEmail({to:email,subject:"confirem emial",html:`<a href=${confirem_link}> click here to confirem your email</a>
+    <br>
+     
+    `})
+  if(!send_email){
+    return next(new Error('email reject',{cause:400}))
+  }  
     const hash_password = hash({ plaintext: password })
 
     req.body.password = hash_password
@@ -18,10 +29,18 @@ export const SignUp = AsyncHandeller(
     return create
       ? res
           .status(201)
-          .json({ message: 'done creating', created: true, create })
+          .json({ message: 'please check your email', created: true  })
       : next(new Error('Could not create',{cause:403}))
   
 }
+)
+export const confiremEmail=AsyncHandeller(
+  async(req,res,next)=>{
+    const {token}=req.params;
+    const {email}=Verify({payload:token});
+    const update_feild=await UserModel.findOneAndUpdate({email},{confiremEmail:true},{new:true})
+    return update_feild?res.status(200).json(update_feild):next (new Error("some thing wrong"))
+  }
 )
 export const SignIn =AsyncHandeller(
   async (req, res, next) => {
